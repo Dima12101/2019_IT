@@ -2,19 +2,22 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 
-def convolution(image, kernel, div = 1):
+
+def convolution(image, kernel, div=1):
     if kernel.shape[0] % 2 == 0 or kernel.shape[1] % 2 == 0:
         raise Exception("Kernel don't must have the even size")
 
     vSh_im = image.shape[0]
     hSh_im = image.shape[1]
-    newImage = np.zeros((vSh_im, hSh_im, 3))
+    newImageXY = np.zeros((vSh_im, hSh_im, 3))
+    newImageX = np.zeros((vSh_im, hSh_im, 3))
+    newImageY = np.zeros((vSh_im, hSh_im, 3))
 
     vSh_k = kernel.shape[0]
     hSh_k = kernel.shape[1]
     for i in range(vSh_im):
         for j in range(hSh_im):
-        	# Sizes of area
+            # Sizes of area
             up = min(vSh_k // 2, i)
             down = min(vSh_k // 2, vSh_im - i - 1)
             left = min(hSh_k // 2, j)
@@ -29,9 +32,17 @@ def convolution(image, kernel, div = 1):
             kernelArea = kernel[(vSh_k // 2) - up:(vSh_k // 2) + down + 1,
                                 (hSh_k // 2) - left:(hSh_k // 2) + right + 1]
 
-            r = sum(sum(imageArea_r * kernelArea))
-            g = sum(sum(imageArea_g * kernelArea))
-            b = sum(sum(imageArea_b * kernelArea))
+            r_xy = sum(sum(imageArea_r * kernelArea))
+            g_xy = sum(sum(imageArea_g * kernelArea))
+            b_xy = sum(sum(imageArea_b * kernelArea))
+
+            r_x = sum((imageArea_r * kernelArea)[vSh_k // 2, :])
+            g_x = sum((imageArea_g * kernelArea)[vSh_k // 2, :])
+            b_x = sum((imageArea_b * kernelArea)[vSh_k // 2, :])
+
+            r_y = sum((imageArea_r * kernelArea)[:, hSh_k // 2])
+            g_y = sum((imageArea_g * kernelArea)[:, hSh_k // 2])
+            b_y = sum((imageArea_b * kernelArea)[:, hSh_k // 2])
 
             # Using cycle
             # r, g, b = 0, 0, 0
@@ -45,10 +56,11 @@ def convolution(image, kernel, div = 1):
             #         j_k += 1
             #     i_k += 1
 
-            newImage[i][j][0] = abs(r) / div
-            newImage[i][j][1] = abs(g) / div
-            newImage[i][j][2] = abs(b) / div
-    return newImage
+            newImageXY[i][j] = [abs(r_xy) / div, abs(g_xy) / div, abs(b_xy) / div]
+            newImageX[i][j] = [abs(r_x) / div, abs(g_x) / div, abs(b_x) / div]
+            newImageY[i][j] = [abs(r_y) / div, abs(g_y) / div, abs(b_y) / div]
+    return newImageXY, newImageX, newImageY
+
 
 def gauseKernel(sigma, h, w):
     kernel = np.zeros((h, w))
@@ -65,12 +77,16 @@ def gauseKernel(sigma, h, w):
 
 img = mpimg.imread('cat.png')
 
-#kernel = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
-#kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]]) #up contrast
-#kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) #box filter
+# kernel = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+# kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]]) #up contrast
+# kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) #box filter
 
-kernel = gauseKernel(sigma=4, h=7, w=7)
-newImage = convolution(img, kernel)
+#kernel = gauseKernel(sigma=4, h=7, w=7)
+#newImageXY, newImageX, newImageY = convolution(img, kernel)
 
-plt.imshow(newImage)
-plt.show()
+#plt.imshow(newImageXY)
+#plt.imshow(newImageX)
+#plt.imshow(newImageY)
+#plt.show()
+
+
